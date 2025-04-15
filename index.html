@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!--
+  © 2024 Michael Pugh. All Rights Reserved.
+  This site and its code are proprietary and may not be reproduced, distributed,
+  or altered in any way without explicit permission from the creator.
+  No part of this website may be copied, reverse engineered, or modified.
+  Unauthorized use will be pursued under applicable copyright law.
+-->
+  <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=AUD"></script>
+</head>
+<body>
+  <header>
+    <h1>The Church of Eternal Wisdom</h1>
+    <p>Find meaning. Get inspired. $5 for a sacred quote.</p>
+  </header>
+
+  <main>
+    <div class="quote-box">
+      <p id="quote-display">Pay $5 to receive your divine quote.</p>
+      <div id="paypal-button-container"></div>
+      <button class="button" id="quote-button" onclick="generateQuote()" style="display:none;">Get a Quote</button>
+    </div>
+  </main>
+
+  <button id="mute-btn" onclick="toggleMute()">Mute Music</button>
+
+  <footer>
+    <p>This is a spiritual novelty site based on an independent belief system. Not affiliated with any mainstream religion.</p>
+    <p>© <span id="year"></span> Michael Pugh. All Rights Reserved.</p>
+  </footer>
+
+  <audio id="bg-music" autoplay loop>
+    <source src="https://www.bensound.com/bensound-music/bensound-tomorrow.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const quotes = [
+      "The Lord is my shepherd; I shall not want. – Psalm 23:1",
+      "Do to others as you would have them do to you. – Luke 6:31",
+      "I can do all things through Christ who strengthens me. – Philippians 4:13",
+      "Be still, and know that I am God. – Psalm 46:10",
+      "In the beginning God created the heavens and the earth. – Genesis 1:1",
+      "Love your neighbor as yourself. – Matthew 22:39",
+      "Even though I walk through the valley of the shadow of death, I will fear no evil. – Psalm 23:4",
+      "With God all things are possible. – Matthew 19:26",
+      "A journey of a thousand miles begins with a single step. – Lao Tzu",
+      "He who opens a school door, closes a prison. – Victor Hugo",
+      "The unexamined life is not worth living. – Socrates",
+      "Faith is taking the first step even when you don’t see the whole staircase. – Martin Luther King Jr.",
+      "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment. – Ralph Waldo Emerson",
+      "All that we are is the result of what we have thought. – Buddha",
+      "Seek first the kingdom of God and His righteousness. – Matthew 6:33",
+      "Blessed are the peacemakers, for they shall be called children of God. – Matthew 5:9",
+      "This too shall pass. – Persian Proverb",
+      "God is our refuge and strength, a very present help in trouble. – Psalm 46:1",
+      "Let your light so shine before men. – Matthew 5:16",
+      "The fear of the Lord is the beginning of wisdom. – Proverbs 9:10"
+    ];
+
+    const quoteDisplay = document.getElementById('quote-display');
+    const quoteButton = document.getElementById('quote-button');
+    const music = document.getElementById('bg-music');
+    const muteBtn = document.getElementById('mute-btn');
+
+    music.volume = 0.5;
+
+    function toggleMute() {
+      music.muted = !music.muted;
+      muteBtn.textContent = music.muted ? 'Unmute Music' : 'Mute Music';
+    }
+
+    function generateQuote() {
+      const lastUsed = localStorage.getItem('lastQuoteTime');
+      const lastQuoteIndex = parseInt(localStorage.getItem('lastQuoteIndex'), 10);
+      const now = new Date().getTime();
+
+      if (lastUsed && now - lastUsed < 86400000) {
+        const hoursLeft = Math.ceil((86400000 - (now - lastUsed)) / (1000 * 60 * 60));
+        quoteDisplay.textContent = `Please come back in ${hoursLeft} hour(s) to receive your next quote.`;
+        quoteButton.disabled = true;
+        return;
+      }
+
+      let availableQuotes = quotes.map((_, i) => i);
+      if (!isNaN(lastQuoteIndex)) {
+        availableQuotes = availableQuotes.filter(i => i !== lastQuoteIndex);
+      }
+      const randomIndex = availableQuotes[Math.floor(Math.random() * availableQuotes.length)];
+      quoteDisplay.textContent = quotes[randomIndex];
+      localStorage.setItem('lastQuoteTime', now);
+      localStorage.setItem('lastQuoteIndex', randomIndex);
+      quoteButton.disabled = true;
+    }
+
+    window.onload = () => {
+      const lastUsed = localStorage.getItem('lastQuoteTime');
+      const now = new Date().getTime();
+      if (lastUsed && now - lastUsed < 86400000) {
+        document.getElementById('quote-button').disabled = true;
+      }
+      document.getElementById('year').textContent = new Date().getFullYear();
+    };
+
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              value: '7.50'
+            },
+            payee: {
+              email_address: 'michaelpugh1402@gmail.com'
+            }
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          document.getElementById('paypal-button-container').style.display = 'none';
+          document.getElementById('quote-button').style.display = 'inline-block';
+          document.getElementById('quote-display').textContent = 'Click below to receive your divine quote.';
+        });
+      }
+    }).render('#paypal-button-container');
+  </script>
+</body>
+</html>
